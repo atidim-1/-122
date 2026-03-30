@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>שאלון רכזות — איפה את על הסקאלה?</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #0F6E56;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --teal: #0F6E56;
+    --teal-light: #E1F5EE;
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --text-hint: #999;
+    --border: rgba(0,0,0,0.1);
+    --border-hover: rgba(0,0,0,0.2);
+    --surface: #fff;
+    --bg: #f7f6f2;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* Header */
+  .header { margin-bottom: 2rem; text-align: right; }
+  .org-tag {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 2rem; }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-hint);
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    height: 4px;
+    background: #eee;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 0.35s ease;
+  }
+
+  /* Question */
+  .q-text {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.55;
+    margin-bottom: 1.5rem;
+    text-align: right;
+  }
+
+  /* Options */
+  .options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 2rem; }
+  .opt-btn {
+    display: block;
+    width: 100%;
+    text-align: right;
+    padding: 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-family: 'Heebo', sans-serif;
+  }
+  .opt-btn:hover { border-color: var(--border-hover); background: #fafaf9; }
+  .opt-btn.selected {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-weight: 500;
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn-back {
+    padding: 9px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    transition: border-color 0.15s;
+  }
+  .btn-back:hover { border-color: var(--border-hover); }
+  .btn-next {
+    padding: 10px 22px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--green);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .btn-next:hover { background: var(--green-dark); }
+  .btn-next:disabled { opacity: 0.35; cursor: default; }
+
+  /* Result */
+  .result { text-align: right; }
+  .result-header { margin-bottom: 1.5rem; }
+  .result-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .result-header p { font-size: 13px; color: var(--text-muted); }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .score-num {
+    font-size: 40px;
+    font-weight: 700;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+  .score-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .score-info p { font-size: 13px; color: var(--text-muted); }
+
+  .scale-visual { margin-bottom: 1.5rem; }
+  .scale-bar-wrap {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .scale-seg { flex: 1; }
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-hint);
+  }
+  .marker-row { position: relative; height: 20px; }
+  .marker-arrow {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(50%);
+  }
+  .marker-tri {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid var(--text);
+  }
+  .marker-label { font-size: 11px; font-weight: 700; margin-top: 1px; }
+
+  .section {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-hint);
+    margin-bottom: 5px;
+  }
+  .section-body { font-size: 14px; line-height: 1.65; }
+
+  .highlight-section {
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+  }
+  .highlight-section .section-label { color: inherit; opacity: 0.7; }
+
+  .restart-btn {
+    margin-top: 1.25rem;
+    display: block;
+    width: 100%;
+    padding: 11px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    transition: border-color 0.15s;
+  }
+  .restart-btn:hover { border-color: var(--border-hover); }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.75rem 1.25rem; }
+    .q-text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="q-screen">
+    <div class="header">
+      <div class="org-tag">הטריבונה למנהיגות השתתפותית</div>
+      <h1>איפה את על הסקאלה?</h1>
+      <p>שאלון קצר לרכזות — 5 שאלות, תוצאה מותאמת אישית</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="qcount">שאלה 1 מתוך 6</span>
+        <span id="qpct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+    </div>
+    <div class="q-text" id="qtext"></div>
+    <div class="options" id="opts"></div>
+    <div class="nav">
+      <button class="btn-back" id="back-btn" onclick="goBack()">← הקודמת</button>
+      <button class="btn-next" id="next-btn" onclick="goNext()" disabled>הבאה →</button>
+    </div>
+  </div>
+
+  <div id="r-screen" style="display:none"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    text: "איך את מרגישה כרגע בתפקיד, ברמה הכללית?",
+    options: [
+      { text: "קשה מאוד — אני בשרידות, העומס גדול ממני", val: 1 },
+      { text: "מתפקדת, אבל עם הרבה מאמץ ולחץ", val: 3 },
+      { text: "יציבה ומתפקדת בסדר, אין קריסות", val: 5 },
+      { text: "פעילה ויוזמת — יש לי מרחב לפעול", val: 7 },
+      { text: "במיטבי — חושבת קדימה ומובילה שינויים", val: 9 }
+    ]
+  },
+  {
+    text: "עד כמה ברורות לך המשימות וסדרי העדיפויות שלך כרגע?",
+    options: [
+      { text: "לא ברור לי מה להתמקד בו — יש יותר מדי כיוונים", val: 1 },
+      { text: "יש כמה משימות ברורות, אבל לא הכל סדור", val: 3 },
+      { text: "יש לי בהירות על המשימות השוטפות", val: 5 },
+      { text: "ברור לי לגמרי, ואני גם יוזמת משימות חדשות", val: 7 },
+      { text: "אני עובדת לפי תכנית אסטרטגית ומנהלת עדיפויות בצורה מלאה", val: 9 }
+    ]
+  },
+  {
+    text: "עד כמה את בקשר רציף ואיכותי עם משתתפי התכנית?",
+    options: [
+      { text: "כמעט לא — בקושי מצליחה לשמור על קשר בסיסי", val: 1 },
+      { text: "קשר חלקי — מגיעה לחלק מהמשתתפים, לא לכולם", val: 3 },
+      { text: "קשר סדיר — רואה את רוב המשתתפים ויודעת איפה הם עומדים", val: 5 },
+      { text: "קשר טוב — יש לי תמונה ברורה ואני מגיבה לצרכים שעולים", val: 7 },
+      { text: "קשר עמוק — אני יוזמת, עוקבת ויודעת מה כל אחד צריך קדימה", val: 9 }
+    ]
+  },
+  {
+    text: "מה ה'כוח' שלך לדברים חדשים ולא שגרתיים?",
+    options: [
+      { text: "אין לי כוח לכלום — אני רק שורדת", val: 1 },
+      { text: "יש לי אנרגיה לדברים חיוניים בלבד", val: 3 },
+      { text: "יש לי כוח לביצוע שוטף וגם ליוזמות קטנות", val: 5 },
+      { text: "אני פעילה, לומדת, ומנסה דברים חדשים", val: 7 },
+      { text: "יש לי אנרגיה ומוטיבציה לבנות מחדש ולשנות גדול", val: 9 }
+    ]
+  },
+  {
+    text: "איך היית מתארת את העשייה שלך עם משתתפי התכנית לאחרונה?",
+    options: [
+      { text: "מינימלית — עושה את ההכרחי בלבד", val: 1 },
+      { text: "מוגבלת — פגישות קצרות ובסיסיות בלבד", val: 3 },
+      { text: "שוטפת — נפגשת, עוקבת, מגיבה לצרכים", val: 5 },
+      { text: "אקטיבית — יוזמת, מנסה דברים חדשים, לומדת תוך כדי", val: 7 },
+      { text: "עמוקה — מובילה תהליכים, מתאימה עצמי ובונה על מה שעובד", val: 9 }
+    ]
+  }
+];
+
+const levels = [
+  {
+    range: [0, 2.5],
+    label: "ביטחון והפחתת עומס",
+    scoreColor: "#E24B4A",
+    scoreBg: "#FCEBEB",
+    focus: "פחות דרישות, יותר קרקוע. חשוב לייצר יכולת נשימה ולהרגיע את המערכת לפני הכל.",
+    practices: "הקפאת משימות לא-ליבה • הגדרת יעד אחד קריטי בלבד • מסר מרגיע: 'כרגע מצמצמים'",
+    tip: "הטעות היא לדרוש מעצמך לתפקד כמו שגרה — זה לא מצב שגרה."
+  },
+  {
+    range: [2.5, 4.5],
+    label: "פשטות, משימות ותפקידונים",
+    scoreColor: "#BA7517",
+    scoreBg: "#FAEEDA",
+    focus: "בהירות, מבנה, צעדים קטנים וחזרה הדרגתית לעשייה.",
+    practices: "חלוקת 'תפקידונים' ועבודה בזוגות • משימות קצרות (10–20 דקות) • חוק 20-80: הפעולה הקטנה שמשפיעה הכי הרבה",
+    tip: "צעד קטן שמושלם עדיף מצעד גדול שלא יצא לפועל."
+  },
+  {
+    range: [4.5, 6.5],
+    label: "שגרות קלות ויציבות",
+    scoreColor: "#639922",
+    scoreBg: "#EAF3DE",
+    focus: "פעימה חוזרת, ללא עומס. בניית עוגנים בשגרה החדשה.",
+    practices: "פגישות קצרות וקבועות עם משתתפים • טקסים קטנים בפתיחה/סיום מפגש • עדכון ציפיות מחודש עם משתתפי התכנית",
+    tip: "הקשר הקבוע הוא הבסיס — גם פגישה קצרה שמתרחשת בוודאות שווה יותר מפגישה ארוכה שלא מתקיימת."
+  },
+  {
+    range: [6.5, 8.5],
+    label: "יוזמה, פיתוח ולמידה",
+    scoreColor: "#185FA5",
+    scoreBg: "#E6F1FB",
+    focus: "קשב, יוזמה וחיבור אישי. את כבר יציבה — עכשיו אפשר לראות כל משתתף לעומק ולהתאים את עצמך.",
+    practices: "שיחות אישיות מעמיקות עם משתתפים • ניסויים קטנים בפעילויות חדשות • מתן מקום למשתתפים להוביל חלקים בעצמם",
+    tip: "ברמה הזו את יכולה להפסיק רק 'לנהל' ולהתחיל באמת לפתח — כל אחד לפי הקצב שלו."
+  },
+  {
+    range: [8.5, 10],
+    label: "אסטרטגיה ושינוי תפיסה",
+    scoreColor: "#0F6E56",
+    scoreBg: "#E1F5EE",
+    focus: "למידה, חידוש ובניה על מה שעובד. את בנקודה שמאפשרת לחשוב מה הלאה — לא רק לבצע.",
+    practices: "תיעוד מה עובד ומה לשפר • שיתוף תובנות עם רכזות אחרות • יוזמת שינויים קטנים בתכנית על בסיס מה שלמדת מהמשתתפים",
+    tip: "את בנקודה שמאפשרת לבנות משהו שיחזיק לאורך זמן — תנצלי אותה."
+  }
+];
+
+let current = 0;
+let answers = [];
+
+function render() {
+  const q = questions[current];
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('qcount').textContent = `שאלה ${current + 1} מתוך ${questions.length}`;
+  document.getElementById('qpct').textContent = pct + '%';
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('qtext').textContent = q.text;
+
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+  q.options.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt-btn' + (answers[current] === i ? ' selected' : '');
+    b.textContent = o.text;
+    b.onclick = () => {
+      answers[current] = i;
+      document.querySelectorAll('.opt-btn').forEach((el, idx) => {
+        el.className = 'opt-btn' + (idx === i ? ' selected' : '');
+      });
+      document.getElementById('next-btn').disabled = false;
+    };
+    opts.appendChild(b);
+  });
+
+  document.getElementById('next-btn').textContent = current === questions.length - 1 ? 'סיום ✓' : 'הבאה →';
+  document.getElementById('next-btn').disabled = answers[current] === undefined;
+  document.getElementById('back-btn').style.visibility = current === 0 ? 'hidden' : 'visible';
+}
+
+function goNext() {
+  if (answers[current] === undefined) return;
+  if (current < questions.length - 1) { current++; render(); }
+  else showResult();
+}
+
+function goBack() {
+  if (current > 0) { current--; render(); }
+}
+
+function showResult() {
+  const avg = answers.reduce((s, a, i) => s + questions[i].options[a].val, 0) / questions.length;
+  const score = Math.round(avg * 10) / 10;
+  const level = levels.find(l => score >= l.range[0] && score <= l.range[1]) || levels[levels.length - 1];
+
+  document.getElementById('q-screen').style.display = 'none';
+  document.getElementById('prog').style.width = '100%';
+  const r = document.getElementById('r-screen');
+  r.style.display = 'block';
+
+  const segColors = ['#E24B4A','#EF9F27','#C8C03A','#1D9E75','#0F6E56'];
+  const markerPos = Math.min(97, Math.max(3, (score / 10) * 100));
+  const rightPos = (100 - markerPos);
+
+  r.innerHTML = `
+    <div class="result">
+      <div class="result-header">
+        <h2>התוצאה שלך</h2>
+        <p>בהתבסס על 6 השאלות — הנה איפה את עכשיו</p>
+      </div>
+      <div class="score-row">
+        <div class="score-num" style="background:${level.scoreBg}; color:${level.scoreColor};">${score.toFixed(1)}</div>
+        <div class="score-info">
+          <h3>${level.label}</h3>
+          <p>רמה ${score.toFixed(1)} על סקאלה של 0–10</p>
+        </div>
+      </div>
+      <div class="scale-visual">
+        <div class="scale-bar-wrap">
+          ${segColors.map(c => `<div class="scale-seg" style="background:${c}"></div>`).join('')}
+        </div>
+        <div class="marker-row">
+          <div class="marker-arrow" style="right:${rightPos}%; transform:translateX(50%);">
+            <div class="marker-tri"></div>
+            <div class="marker-label">${score.toFixed(1)}</div>
+          </div>
+        </div>
+        <div class="scale-labels">
+          <span>9–10</span>
+          <span>7–8</span>
+          <span>5–6</span>
+          <span>3–4</span>
+          <span>0–2</span>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">המיקוד שלך עכשיו</div>
+        <div class="section-body">${level.focus}</div>
+      </div>
+      <div class="section">
+        <div class="section-label">פרקטיקות מרכזיות</div>
+        <div class="section-body">${level.practices}</div>
+      </div>
+      <div class="highlight-section" style="background:${level.scoreBg}; border:1.5px solid ${level.scoreColor}30;">
+        <div class="section-label" style="color:${level.scoreColor};">לזכור</div>
+        <div class="section-body">${level.tip}</div>
+      </div>
+      <button class="restart-btn" onclick="restart()">← מלאי שוב מההתחלה</button>
+    </div>
+  `;
+}
+
+function restart() {
+  current = 0; answers = [];
+  document.getElementById('r-screen').style.display = 'none';
+  document.getElementById('q-screen').style.display = 'block';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
